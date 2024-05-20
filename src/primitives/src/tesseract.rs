@@ -1,10 +1,8 @@
-use bevy::math::{Vec3};
+use bevy::math::{Vec3, Mat4};
 use bevy::prelude::Mesh;
 use bevy::render::mesh::{Indices, PrimitiveTopology};
 use bevy::render::render_asset::RenderAssetUsages;
-use nalgebra::{Matrix4};
 use crate::{Rotation, Vertex};
-
 
 pub struct Tesseract {
     vertices: Vec<Vertex>,
@@ -103,7 +101,7 @@ impl Tesseract {
 
     pub fn rotate(&mut self, plane: Rotation, theta: f32) {
         let rotation_matrix = match plane {
-            Rotation::XW => Matrix4::new(
+            Rotation::XW => Mat4::from_cols_array(&[
                 theta.cos(),
                 0.0,
                 0.0,
@@ -120,8 +118,8 @@ impl Tesseract {
                 0.0,
                 0.0,
                 theta.cos(),
-            ),
-            Rotation::YW => Matrix4::new(
+            ]),
+            Rotation::YW => Mat4::from_cols_array(&[
                 1.0,
                 0.0,
                 0.0,
@@ -138,8 +136,8 @@ impl Tesseract {
                 theta.sin(),
                 0.0,
                 theta.cos(),
-            ),
-            Rotation::ZW => Matrix4::new(
+            ]),
+            Rotation::ZW => Mat4::from_cols_array(&[
                 1.0,
                 0.0,
                 0.0,
@@ -156,7 +154,7 @@ impl Tesseract {
                 0.0,
                 theta.sin(),
                 theta.cos(),
-            ),
+            ]),
         };
         for vertex in &mut self.vertices {
             vertex.apply_matrix(rotation_matrix);
