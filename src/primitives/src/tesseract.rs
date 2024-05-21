@@ -82,31 +82,31 @@ impl Tesseract {
         )
         .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, projected_vertices)
         .with_inserted_indices(Indices::U32(normal_indices))
-        .with_inserted_attribute(
-            Mesh::ATTRIBUTE_NORMAL,
-            vec![
-                // Normals for the top side (towards +y)
-                [0.0, 1.0, 0.0],
-                [0.0, 1.0, 0.0],
-                [0.0, 1.0, 0.0],
-                [0.0, 1.0, 0.0],
-                // Normals for the bottom side (towards -y)
-                [0.0, -1.0, 0.0],
-                [0.0, -1.0, 0.0],
-                [0.0, -1.0, 0.0],
-                [0.0, -1.0, 0.0],
-                // Normals for the right side (towards +x)
-                [1.0, 0.0, 0.0],
-                [1.0, 0.0, 0.0],
-                [1.0, 0.0, 0.0],
-                [1.0, 0.0, 0.0],
-                // Normals for the left side (towards -x)
-                [-1.0, 0.0, 0.0],
-                [-1.0, 0.0, 0.0],
-                [-1.0, 0.0, 0.0],
-                [-1.0, 0.0, 0.0],
-            ],
-        )
+        // .with_inserted_attribute(
+        //     Mesh::ATTRIBUTE_NORMAL,
+        //     vec![
+        //         // Normals for the top side (towards +y)
+        //         [0.0, 1.0, 0.0],
+        //         [0.0, 1.0, 0.0],
+        //         [0.0, 1.0, 0.0],
+        //         [0.0, 1.0, 0.0],
+        //         // Normals for the bottom side (towards -y)
+        //         [0.0, -1.0, 0.0],
+        //         [0.0, -1.0, 0.0],
+        //         [0.0, -1.0, 0.0],
+        //         [0.0, -1.0, 0.0],
+        //         // Normals for the right side (towards +x)
+        //         [1.0, 0.0, 0.0],
+        //         [1.0, 0.0, 0.0],
+        //         [1.0, 0.0, 0.0],
+        //         [1.0, 0.0, 0.0],
+        //         // Normals for the left side (towards -x)
+        //         [-1.0, 0.0, 0.0],
+        //         [-1.0, 0.0, 0.0],
+        //         [-1.0, 0.0, 0.0],
+        //         [-1.0, 0.0, 0.0],
+        //     ],
+        // )
     }
 
     pub fn translate(&mut self, dw: f32) {
