@@ -1,6 +1,7 @@
-use bevy::math::{Mat4, Vec4};
+use nalgebra::{Matrix4, Vector4};
 
 pub mod tesseract;
+mod vector;
 
 pub enum Rotation {
     XW,
@@ -9,17 +10,17 @@ pub enum Rotation {
 }
 
 struct Vertex {
-    position: Vec4,
+    position: Vector4<f32>,
 }
 
 impl Vertex {
     fn new(x: f32, y: f32, z: f32, w: f32) -> Self {
         Self {
-            position: Vec4::new(x, y, z, w),
+            position: Vector4::new(x, y, z, w),
         }
     }
 
-    fn apply_matrix(&mut self, matrix: Mat4) {
+    fn apply_matrix(&mut self, matrix: Matrix4<f32>) {
         self.position = matrix * self.position;
     }
 

@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use nalgebra::Vector4;
 use primitives::tesseract::Tesseract;
 use primitives::Rotation;
 
@@ -18,10 +19,10 @@ struct TesseractComponent {
 fn spawn_camera(mut commands: Commands) {
     let camera = Camera3dBundle {
         camera: Camera {
-            clear_color: Color::WHITE.into(),
+            clear_color: Color::GRAY.into(),
             ..default()
         },
-        transform: Transform::from_xyz(-4.0, 2.0, 2.0).looking_at(Vec3::ZERO, Vec3::Y),
+        transform: Transform::from_xyz(2.0, 3.0, 2.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..default()
     };
 
@@ -31,7 +32,7 @@ fn spawn_camera(mut commands: Commands) {
 fn spawn_light(mut commands: Commands) {
     let light = PointLightBundle {
         point_light: PointLight {
-            intensity: 20000.0,
+            intensity: 200000.0,
             radius: 10.0,
             ..default()
         },
@@ -51,7 +52,8 @@ fn spawn_hypercube(
     commands
         .spawn(PbrBundle {
             mesh: meshes.add(tesseract.mesh()),
-            material: materials.add(Color::BLUE),
+            material: materials.add(Color::WHITE),
+            transform: Transform::from_xyz(0.0, 0.0, 0.0),
             ..default()
         })
         .insert(TesseractComponent { object: tesseract });
@@ -61,13 +63,29 @@ fn animate_hypercube(
     time: Res<Time>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut query: Query<(&mut TesseractComponent, &Handle<Mesh>)>,
-    // mut camera: Query<&mut Transform, With<Camera>>,
+    mut camera: Query<&mut Transform, With<Camera>>,
 ) {
+    let camera_transform = camera.get_single_mut().unwrap();
     for (mut tesseract_component, mesh_handle) in query.iter_mut() {
         tesseract_component
             .object
-            .rotate(Rotation::XW, 0.7 * time.delta_seconds());
-        let projected_vertices = tesseract_component.object.projected_vertices();
+            .rotate(Rotation::XW, 0.9 * time.delta_seconds());
+        // tesseract_component
+        //     .object
+        //     .rotate(Rotation::YW, 0.7 * time.delta_seconds());
+        // tesseract_component
+        //     .object
+        //     .rotate(Rotation::ZW, 0.5 * time.delta_seconds());
+        // tesseract_component
+        //     .object
+        //     .translate(-6.0 * time.delta_seconds());
+        let projected_vertices = tesseract_component.object.projected_vertices(
+            Vector4::new(5.0, 0.0, 0.0, 0.0),
+            Vector4::new(0.0, 0.0, 0.0, 0.0),
+            Vector4::new(0.0, 1.0, 0.0, 0.0),
+            Vector4::new(0.0, 0.0, 1.0, 0.0),
+            45.0,
+        );
         if let Some(mesh) = meshes.get_mut(mesh_handle) {
             mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, projected_vertices);
         }
