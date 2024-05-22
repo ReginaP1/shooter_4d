@@ -9,6 +9,13 @@ pub enum Rotation {
     ZW,
 }
 
+pub enum Axis {
+    X,
+    Y,
+    Z,
+    W
+}
+
 struct Vertex {
     position: Vector4<f32>,
 }

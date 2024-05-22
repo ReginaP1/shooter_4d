@@ -1,12 +1,15 @@
 use bevy::prelude::*;
 use nalgebra::Vector4;
 use primitives::tesseract::Tesseract;
-use primitives::Rotation;
+use primitives::{Rotation, Axis};
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_systems(Startup, (spawn_camera, spawn_light, spawn_hypercube))
+        .add_systems(
+            Startup,
+            (spawn_camera, spawn_light, spawn_hypercube, spawn_floor),
+        )
         .add_systems(Update, animate_hypercube)
         .run();
 }
@@ -22,7 +25,7 @@ fn spawn_camera(mut commands: Commands) {
             clear_color: Color::GRAY.into(),
             ..default()
         },
-        transform: Transform::from_xyz(1.0, 2.0, 1.0).looking_at(Vec3::new(0.0, 1.0, 0.0), Vec3::Y),
+        transform: Transform::from_xyz(1.0, 4.0, 1.0).looking_at(Vec3::new(0.0, 1.0, 0.0), Vec3::Y),
         ..default()
     };
 
@@ -32,19 +35,22 @@ fn spawn_camera(mut commands: Commands) {
 fn spawn_light(mut commands: Commands) {
     let light = PointLightBundle {
         point_light: PointLight {
-            intensity: 200000.0,
-            radius: 10.0,
+            intensity: 100000.0,
+            radius: 100.0,
             ..default()
         },
-        transform: Transform::from_xyz(1.0, 1.0, 0.0),
+        transform: Transform::from_xyz(0.0, 4.0, 0.0),
         ..default()
     };
 
     commands.spawn(light);
 }
 
-fn spawn_floor(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>,
-               mut materials: ResMut<Assets<StandardMaterial>>) {
+fn spawn_floor(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
     commands.spawn(PbrBundle {
         mesh: meshes.add(Circle::new(4.0)),
         material: materials.add(Color::GREEN),
@@ -58,11 +64,15 @@ fn spawn_hypercube(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let tesseract = Tesseract::new();
+    let mut tesseract = Tesseract::new();
+    tesseract.scale(Axis::X, 0.25);
+    tesseract.scale(Axis::Y, 2.0);
+    tesseract.scale(Axis::Z, 0.25);
+    tesseract.scale(Axis::W, 2.0);
     commands
         .spawn(PbrBundle {
             mesh: meshes.add(tesseract.mesh()),
-            material: materials.add(Color::WHITE),
+            material: materials.add(Color::CYAN),
             transform: Transform::from_xyz(0.0, 1.0, 0.0),
             ..default()
         })
@@ -80,21 +90,23 @@ fn animate_hypercube(
         tesseract_component
             .object
             .rotate(Rotation::XW, 0.9 * time.delta_seconds());
-        tesseract_component
-            .object
-            .rotate(Rotation::YW, 0.7 * time.delta_seconds());
-        tesseract_component
-            .object
-            .rotate(Rotation::ZW, 0.5 * time.delta_seconds());
+        // tesseract_component
+        //     .object
+        //     .rotate(Rotation::YW, 0.7 * time.delta_seconds());
+        // tesseract_component
+        //     .object
+        //     .rotate(Rotation::ZW, 1.0 * time.delta_seconds());
         let projected_vertices = tesseract_component.object.projected_vertices(
             Vector4::new(5.0, 0.0, 0.0, 0.0),
             Vector4::new(0.0, 0.0, 0.0, 0.0),
             Vector4::new(0.0, 1.0, 0.0, 0.0),
             Vector4::new(0.0, 0.0, 1.0, 0.0),
-            180.0,
+            45.0,
         );
+        let normals = tesseract_component.object.get_normals(&projected_vertices);
         if let Some(mesh) = meshes.get_mut(mesh_handle) {
             mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, projected_vertices);
+            mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
         }
     }
 }

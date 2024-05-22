@@ -1,4 +1,4 @@
-use nalgebra::Vector4;
+use nalgebra::{Vector4};
 
 pub fn calc_4d_matrix(
     from: Vector4<f32>,

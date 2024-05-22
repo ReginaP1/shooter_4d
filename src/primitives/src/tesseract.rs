@@ -1,5 +1,5 @@
 use crate::vector::{calc_4d_matrix, dot4};
-use crate::{Rotation, Vertex};
+use crate::{Axis, Rotation, Vertex};
 use bevy::math::Vec3;
 use bevy::prelude::Mesh;
 use bevy::render::mesh::{Indices, PrimitiveTopology};
@@ -8,6 +8,7 @@ use nalgebra::{Matrix4, Vector4};
 
 pub struct Tesseract {
     vertices: Vec<Vertex>,
+    indices: Vec<u32>,
 }
 
 impl Tesseract {
@@ -30,7 +31,25 @@ impl Tesseract {
             Vertex::new(-1.0, 1.0, 1.0, 1.0),
             Vertex::new(1.0, 1.0, 1.0, 1.0),
         ];
-        Self { vertices }
+        let indices = vec![
+            3, 5, 7, 1, 5, 3, 11, 9, 3, 1, 3, 9, 7, 5, 15, 13, 15, 5, 3, 7, 11, 15, 11, 7, 1, 9, 5,
+            13, 5, 9, 11, 15, 9, 13, 9, 15, 2, 6, 4, 8, 4, 6, 10, 12, 14, 16, 14, 12, 12, 10, 4, 2,
+            4, 10, 8, 6, 16, 14, 16, 6, 12, 4, 16, 8, 16, 4, 2, 10, 6, 14, 6, 10, 1, 3, 2, 4, 2, 3,
+            9, 10, 11, 12, 11, 10, 3, 1, 11, 9, 11, 1, 2, 4, 10, 12, 10, 4, 1, 2, 9, 10, 9, 2, 4,
+            3, 12, 11, 12, 3, 8, 7, 4, 3, 4, 7, 16, 12, 15, 11, 15, 12, 12, 4, 11, 3, 11, 4, 16,
+            15, 8, 7, 8, 15, 12, 16, 4, 8, 4, 16, 11, 3, 15, 7, 15, 3, 6, 5, 8, 7, 8, 5, 14, 16,
+            13, 15, 13, 16, 5, 13, 7, 15, 7, 13, 7, 15, 8, 16, 8, 15, 8, 16, 6, 14, 6, 16, 6, 5,
+            14, 13, 14, 5, 5, 1, 6, 2, 6, 1, 13, 14, 9, 10, 9, 14, 5, 13, 1, 9, 1, 13, 6, 2, 14,
+            10, 14, 2, 1, 9, 2, 10, 2, 9, 13, 5, 14, 6, 14, 5,
+        ];
+        let mut normal_indices = vec![];
+        for i in &indices {
+            normal_indices.push(i - 1);
+        }
+        Self {
+            vertices,
+            indices: normal_indices,
+        }
     }
 
     pub fn projected_vertices(
@@ -53,22 +72,15 @@ impl Tesseract {
         projected
     }
 
-    pub fn mesh(&self) -> Mesh {
-        let indices = vec![
-            3, 5, 7, 1, 5, 3, 11, 9, 3, 1, 3, 9, 7, 5, 15, 13, 15, 5, 3, 7, 11, 15, 11, 7, 1, 9, 5,
-            13, 5, 9, 11, 15, 9, 13, 9, 15, 2, 6, 4, 8, 4, 6, 10, 12, 14, 16, 14, 12, 12, 10, 4, 2,
-            4, 10, 8, 6, 16, 14, 16, 6, 12, 4, 16, 8, 16, 4, 2, 10, 6, 14, 6, 10, 1, 3, 2, 4, 2, 3,
-            9, 10, 11, 12, 11, 10, 3, 1, 11, 9, 11, 1, 2, 4, 10, 12, 10, 4, 1, 2, 9, 10, 9, 2, 4,
-            3, 12, 11, 12, 3, 8, 7, 4, 3, 4, 7, 16, 12, 15, 11, 15, 12, 12, 4, 11, 3, 11, 4, 16,
-            15, 8, 7, 8, 15, 12, 16, 4, 8, 4, 16, 11, 3, 15, 7, 15, 3, 6, 5, 8, 7, 8, 5, 14, 16,
-            13, 15, 13, 16, 5, 13, 7, 15, 7, 13, 7, 15, 8, 16, 8, 15, 8, 16, 6, 14, 6, 16, 6, 5,
-            14, 13, 14, 5, 5, 1, 6, 2, 6, 1, 13, 14, 9, 10, 9, 14, 5, 13, 1, 9, 1, 13, 6, 2, 14,
-            10, 14, 2, 1, 9, 2, 10, 2, 9, 13, 5, 14, 6, 14, 5,
-        ];
-        let mut normal_indices = vec![];
-        for i in indices {
-            normal_indices.push(i - 1);
+    pub fn get_normals(&self, v: &Vec<Vec3>) -> Vec<Vec3> {
+        let mut norm = vec![];
+        for vt in v {
+            norm.push(vt.normalize());
         }
+        norm
+    }
+
+    pub fn mesh(&mut self) -> Mesh {
         let projected_vertices: Vec<Vec3> = self.projected_vertices(
             Vector4::new(5.0, 0.0, 0.0, 0.0),
             Vector4::new(0.0, 0.0, 0.0, 0.0),
@@ -80,38 +92,24 @@ impl Tesseract {
             PrimitiveTopology::TriangleList,
             RenderAssetUsages::MAIN_WORLD | RenderAssetUsages::RENDER_WORLD,
         )
-        .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, projected_vertices)
-        .with_inserted_indices(Indices::U32(normal_indices))
-        // .with_inserted_attribute(
-        //     Mesh::ATTRIBUTE_NORMAL,
-        //     vec![
-        //         // Normals for the top side (towards +y)
-        //         [0.0, 1.0, 0.0],
-        //         [0.0, 1.0, 0.0],
-        //         [0.0, 1.0, 0.0],
-        //         [0.0, 1.0, 0.0],
-        //         // Normals for the bottom side (towards -y)
-        //         [0.0, -1.0, 0.0],
-        //         [0.0, -1.0, 0.0],
-        //         [0.0, -1.0, 0.0],
-        //         [0.0, -1.0, 0.0],
-        //         // Normals for the right side (towards +x)
-        //         [1.0, 0.0, 0.0],
-        //         [1.0, 0.0, 0.0],
-        //         [1.0, 0.0, 0.0],
-        //         [1.0, 0.0, 0.0],
-        //         // Normals for the left side (towards -x)
-        //         [-1.0, 0.0, 0.0],
-        //         [-1.0, 0.0, 0.0],
-        //         [-1.0, 0.0, 0.0],
-        //         [-1.0, 0.0, 0.0],
-        //     ],
-        // )
+            .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, projected_vertices)
+            .with_inserted_indices(Indices::U32(self.indices.clone()))
     }
 
     pub fn translate(&mut self, dw: f32) {
         for v in &mut self.vertices {
             v.translate(dw);
+        }
+    }
+
+    pub fn scale(&mut self, axis: Axis, factor: f32) {
+        for v in &mut self.vertices {
+            match axis {
+                Axis::X => { v.position.x *= factor; }
+                Axis::Y => { v.position.y *= factor; }
+                Axis::Z => { v.position.z *= factor; }
+                Axis::W => { v.position.w *= factor; }
+            }
         }
     }
 
