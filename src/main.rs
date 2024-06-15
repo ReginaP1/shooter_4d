@@ -3,13 +3,23 @@ use nalgebra::Vector4;
 use primitives::tesseract::Tesseract;
 use primitives::{Rotation, Axis};
 
+pub struct SpawnObjectsPlugin;
+
+impl Plugin for SpawnObjectsPlugin{
+    fn build(&self, app: &mut App){
+        app.add_systems(
+            Startup,
+            (
+                spawn_camera, spawn_light, spawn_hypercube, spawn_floor
+            )
+        );
+    }
+}
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_systems(
-            Startup,
-            (spawn_camera, spawn_light, spawn_hypercube, spawn_floor),
-        )
+        .add_plugins(SpawnObjectsPlugin)
         .add_systems(Update, animate_hypercube)
         .run();
 }
